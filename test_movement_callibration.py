@@ -1,11 +1,11 @@
 import RPi.GPIO as GPIO
 
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(22, GPIO.OUT)
-pwm = GPIO.PWM(22, 50)
+GPIO.setup(4, GPIO.OUT)
+pwm = GPIO.PWM(4, 50)
 
 try:
-    pwm.start(6.9)
+    pwm.start(7)
     input("Servo running at 7.5%. Adjust pot until it stops. Press Enter when done...")
     
 except KeyboardInterrupt:

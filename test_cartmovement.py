@@ -9,6 +9,7 @@ GPIO.setmode(GPIO.BCM)              # Use BCM pin numbering (GPIO numbers, not p
 GPIO.setup(RIGHT_SERVO, GPIO.OUT)    # Set GPIO 5 as output
 GPIO.setup(LEFT_SERVO, GPIO.OUT)   # Set GPIO 6 as output
 
+time.sleep(5)
 RIGHT_pwm = GPIO.PWM(RIGHT_SERVO, 50)   # Create PWM on GPIO 5, 50Hz frequency (servos need 50Hz)
 LEFT_pwm = GPIO.PWM(LEFT_SERVO, 50) # Create PWM on GPIO 6, 50Hz frequency
 RIGHT_pwm.start(0)    # Start PWM with 0% duty cycle (off).
@@ -22,8 +23,8 @@ print("1")
 
 # Forward
 print("Moving FORWARD")
-RIGHT_pwm.ChangeDutyCycle(7)    # 2.5% duty cycle = full speed clockwise
-LEFT_pwm.ChangeDutyCycle(8)  # 12.5% duty cycle = full speed counter-clockwise (opposite direction because servo is mirrored)
+RIGHT_pwm.ChangeDutyCycle(4.9)    # 2.5% duty cycle = full speed clockwise
+LEFT_pwm.ChangeDutyCycle(8.9)  # 12.5% duty cycle = full speed counter-clockwise (opposite direction because servo is mirrored)
 time.sleep(.5)                   # Run for 0.5 seconds
 
 # Stop
@@ -33,8 +34,8 @@ time.sleep(0.5)                  # Stay stopped for 0.5 seconds
 
 # Backward
 print("Moving BACKWARD")
-RIGHT_pwm.ChangeDutyCycle(8)   # Reverse direction: counter-clockwise
-LEFT_pwm.ChangeDutyCycle(7)   # Reverse direction: clockwise (opposite of RIGHT)
+RIGHT_pwm.ChangeDutyCycle(8.9)   # Reverse direction: counter-clockwise
+LEFT_pwm.ChangeDutyCycle(4.9)   # Reverse direction: clockwise (opposite of RIGHT)
 time.sleep(.5)                   # Run for 0.5 seconds
 
 # Stop

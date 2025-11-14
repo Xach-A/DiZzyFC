@@ -15,7 +15,7 @@ pwm.ChangeDutyCycle(2.5)  # Full speed CW
 time.sleep(2)
 
 # Stop
-pwm.ChangeDutyCycle(7.5)  # Stop
+pwm.ChangeDutyCycle(0)  # Stop
 time.sleep(1)
 
 # Counter-clockwise rotation
@@ -24,7 +24,7 @@ pwm.ChangeDutyCycle(12.5)  # Full speed CCW
 time.sleep(2)
 
 # Stop
-pwm.ChangeDutyCycle(7.5)
+pwm.ChangeDutyCycle(0)
 time.sleep(0.5)
 
 pwm.stop()

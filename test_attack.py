@@ -4,7 +4,7 @@ import time
 
 # Right and Left servo pins
 RIGHT_SERVO_PIN = 4
-LEFT_SERVO_PIN = 5  # <-- change to the GPIO pin you actually used
+LEFT_SERVO_PIN = 5 
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(RIGHT_SERVO_PIN, GPIO.OUT)
@@ -22,6 +22,7 @@ def set_angle(pwm, angle):
     pwm.ChangeDutyCycle(duty)
 
 try:
+    time.sleep(5)
     print("Calibrating both arms to 0°...")
     set_angle(right_pwm, 0)
     set_angle(left_pwm, 180)   # ← mirror position
