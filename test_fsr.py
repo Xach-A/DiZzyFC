@@ -14,8 +14,13 @@ def read_adc(channel):
     # Extract and combine them into a single number (0-1023)
     return ((adc[1] & 3) << 8) + adc[2]
 
-print("FSR Test - Press Ctrl+C to exit")
-while True:                    # Loop forever
-    value = read_adc(0)       # Read from ADC channel 0
-    print(f"FSR: {value}")    # Display the value
-    time.sleep(0.2)           # Wait 200ms before next reading
+try:
+    print("FSR Test - Press Ctrl+C to exit")
+    while True:                    # Loop forever
+        value = read_adc(0)       # Read from ADC channel 0
+        print(f"FSR: {value}")    # Display the value
+        time.sleep(0.2)           # Wait 200ms before next reading
+except KeyboardInterrupt:
+    print("\nStopped")
+finally:
+    GPIO.cleanup()

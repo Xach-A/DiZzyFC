@@ -6,7 +6,7 @@ pwm = GPIO.PWM(4, 50)
 
 try:
     pwm.start(7)
-    input("Servo running at 7.5%. Adjust pot until it stops. Press Enter when done...")
+    input("Servo running at 7%. Adjust pot until it stops. Press Enter when done...")
     
 except KeyboardInterrupt:
     print("\nStopped by user")
