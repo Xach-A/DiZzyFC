@@ -22,7 +22,7 @@ def set_angle(pwm, angle):
     pwm.ChangeDutyCycle(duty)
 
 try:
-    time.sleep(5)
+    time.sleep(1)
     print("Calibrating both arms to 0°...")
     set_angle(right_pwm, 0)
     set_angle(left_pwm, 180)   # ← mirror position
