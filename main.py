@@ -22,8 +22,8 @@ P2_BTN_ATTACK_LEFT = 5
 P2_BTN_ATTACK_RIGHT = 6
 
 # Start buttons (one per player, both must press)
-P1_BTN_START = 16
-P2_BTN_START = 26
+P1_BTN_START = 17
+P2_BTN_START = 24
 
 # Player 1 Fighter Servos
 P1_MOVE_LEFT = 12   # Continuous servo - left wheel
@@ -35,11 +35,17 @@ P1_ARM_RIGHT = 20   # Positional servo - right arm
 P2_MOVE_LEFT = 21   # Continuous servo - left wheel
 P2_MOVE_RIGHT = 16  # Continuous servo - right wheel
 P2_ARM_LEFT = 7     # Positional servo - left arm
-P2_ARM_RIGHT = 8    # Positional servo - right arm
+P2_ARM_RIGHT = 26    # Positional servo - right arm
 
 # Force Sensors via MCP3008 (SPI)
-P1_FSR_CHANNEL = 0
-P2_FSR_CHANNEL = 1
+# Player 1 has 2 sensors (left and right side of body)
+P1_FSR_LEFT = 0
+P1_FSR_RIGHT = 1
+# Player 2 has 2 sensors (left and right side of body)
+P2_FSR_LEFT = 2
+P2_FSR_RIGHT = 3
+
+
 
 # ============== GAME CONSTANTS ==============
 STARTING_HP = 50
@@ -60,7 +66,7 @@ DEBOUNCE_MS = 50
 
 # ============== DAMAGE THRESHOLDS ==============
 def calculate_damage(force_reading):
-    if force_reading < 20:
+    if force_reading < 75:
         return 0
     elif force_reading < 200:
         return 3
@@ -142,10 +148,11 @@ def stop_all_movement():
 
 def reset_arms():
     """Reset all arms to neutral position"""
-    set_angle(p1_arm_left_pwm, ARM_NEUTRAL_MIRRORED)
-    set_angle(p1_arm_right_pwm, ARM_NEUTRAL)
-    set_angle(p2_arm_left_pwm, ARM_NEUTRAL)
-    set_angle(p2_arm_right_pwm, ARM_NEUTRAL_MIRRORED)
+    # Both fighters have same physical mounting
+    set_angle(p1_arm_left_pwm, ARM_NEUTRAL_MIRRORED)   # 180°
+    set_angle(p1_arm_right_pwm, ARM_NEUTRAL)            # 0°
+    set_angle(p2_arm_left_pwm, ARM_NEUTRAL_MIRRORED)   # 180°
+    set_angle(p2_arm_right_pwm, ARM_NEUTRAL)            # 0°
     time.sleep(0.3)
     # Turn off PWM signal to prevent jitter
     for pwm in [p1_arm_left_pwm, p1_arm_right_pwm, p2_arm_left_pwm, p2_arm_right_pwm]:
@@ -153,23 +160,25 @@ def reset_arms():
 
 # ============== PLAYER CLASSES ==============
 class Fighter:
+
     def __init__(self, name, move_left_pwm, move_right_pwm, arm_left_pwm, arm_right_pwm, 
-                 fsr_channel, btn_left, btn_right, btn_atk_left, btn_atk_right, facing_right=True):
+
+                 fsr_left, fsr_right, btn_left, btn_right, btn_atk_left, btn_atk_right, facing_right=True):
         self.name = name
         self.hp = STARTING_HP
         self.move_left_pwm = move_left_pwm
         self.move_right_pwm = move_right_pwm
         self.arm_left_pwm = arm_left_pwm
         self.arm_right_pwm = arm_right_pwm
-        self.fsr_channel = fsr_channel
+        self.fsr_left = fsr_left
+        self.fsr_right = fsr_right
         self.btn_left = btn_left
         self.btn_right = btn_right
         self.btn_atk_left = btn_atk_left
         self.btn_atk_right = btn_atk_right
         self.facing_right = facing_right
         self.attacking = False
-        self.last_btn_time = {btn_left: 0, btn_right: 0, btn_atk_left: 0, btn_atk_right: 0}
-    
+        self.last_btn_time = {btn_left: 0, btn_right: 0, btn_atk_left: 0, btn_atk_right: 0}   
     def move_left(self):
         if self.facing_right:
             self.move_left_pwm.ChangeDutyCycle(MOVE_BACKWARD)
@@ -191,33 +200,29 @@ class Fighter:
         self.move_right_pwm.ChangeDutyCycle(MOVE_STOP)
     
     def attack_left(self):
-        if self.facing_right:
-            set_angle(self.arm_left_pwm, ARM_ATTACK)
-        else:
-            set_angle(self.arm_left_pwm, ARM_ATTACK)
+        # Left arms always use same angle regardless of which player
+        set_angle(self.arm_left_pwm, ARM_ATTACK)
         self.attacking = True
     
     def attack_right(self):
-        if self.facing_right:
-            set_angle(self.arm_right_pwm, ARM_ATTACK)
-        else:
-            set_angle(self.arm_right_pwm, ARM_ATTACK)
+        # Right arms always use same angle regardless of which player
+        set_angle(self.arm_right_pwm, ARM_ATTACK)
         self.attacking = True
     
     def reset_left_arm(self):
-        if self.facing_right:
-            set_angle(self.arm_left_pwm, ARM_NEUTRAL_MIRRORED)
-        else:
-            set_angle(self.arm_left_pwm, ARM_NEUTRAL)
+        # Left arms always reset to mirrored neutral
+        set_angle(self.arm_left_pwm, ARM_NEUTRAL_MIRRORED)
     
     def reset_right_arm(self):
-        if self.facing_right:
-            set_angle(self.arm_right_pwm, ARM_NEUTRAL)
-        else:
-            set_angle(self.arm_right_pwm, ARM_NEUTRAL_MIRRORED)
+        # Right arms always reset to standard neutral
+        set_angle(self.arm_right_pwm, ARM_NEUTRAL)
     
     def read_force(self):
-        return read_adc(self.fsr_channel)
+        """Read both FSR sensors and return the reading"""
+        left_force = read_adc(self.fsr_left)
+        right_force = read_adc(self.fsr_right)
+
+        return left_force+right_force
     
     def take_damage(self, amount):
         self.hp -= amount
@@ -369,7 +374,8 @@ if __name__ == "__main__":
         move_right_pwm=p1_move_right_pwm,
         arm_left_pwm=p1_arm_left_pwm,
         arm_right_pwm=p1_arm_right_pwm,
-        fsr_channel=P1_FSR_CHANNEL,
+        fsr_left=P1_FSR_LEFT,
+        fsr_right=P1_FSR_RIGHT,
         btn_left=P1_BTN_LEFT,
         btn_right=P1_BTN_RIGHT,
         btn_atk_left=P1_BTN_ATTACK_LEFT,
@@ -383,7 +389,8 @@ if __name__ == "__main__":
         move_right_pwm=p2_move_right_pwm,
         arm_left_pwm=p2_arm_left_pwm,
         arm_right_pwm=p2_arm_right_pwm,
-        fsr_channel=P2_FSR_CHANNEL,
+        fsr_left=P2_FSR_LEFT,
+        fsr_right=P2_FSR_RIGHT,
         btn_left=P2_BTN_LEFT,
         btn_right=P2_BTN_RIGHT,
         btn_atk_left=P2_BTN_ATTACK_LEFT,

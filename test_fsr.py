@@ -18,7 +18,7 @@ def read_adc(channel):
 try:
     print("FSR Test - Press Ctrl+C to exit")
     while True:                    # Loop forever
-        value = read_adc(2)       # Read from ADC channel 0
+        value = read_adc(0)       # Read from ADC channel 0
         print(f"FSR: {value}")    # Display the value
         time.sleep(0.2)           # Wait 200ms before next reading
 except KeyboardInterrupt:

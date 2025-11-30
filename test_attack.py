@@ -3,7 +3,7 @@ import RPi.GPIO as GPIO
 import time
 
 # Right and Left servo pins
-RIGHT_SERVO_PIN = 4
+RIGHT_SERVO_PIN = 6
 LEFT_SERVO_PIN = 5 
 
 GPIO.setmode(GPIO.BCM)
