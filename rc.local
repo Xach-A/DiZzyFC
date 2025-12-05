@@ -1,0 +1,7 @@
+#!/bin/sh -e
+#
+# rc.local
+#
+# Start DiZzy FC on boot
+python3 /home/dannybchampassack/DiZzyFC/DiZzyFC/main.py  > /home/dannybchampassack/DiZzyFC/DiZzyFC/main.py.log 2>&1 &
+exit 0
