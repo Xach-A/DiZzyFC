@@ -353,8 +353,21 @@ def game_loop(p1, p2):
         
         # ---- Win Condition ----
         if p1.is_knocked_out():
+            # P1 loses - arms go down, P2 wins - arms stay up
+            set_angle(p1_arm_left_pwm, ARM_NEUTRAL_MIRRORED)   # P1 arms down (neutral)
+            set_angle(p1_arm_right_pwm, ARM_NEUTRAL)
+            set_angle(p2_arm_left_pwm, ARM_ATTACK)             # P2 arms up (victory!)
+            set_angle(p2_arm_right_pwm, ARM_ATTACK)
+            time.sleep(0.5)  # Hold victory pose
             return "Player 2"
+            
         if p2.is_knocked_out():
+            # P2 loses - arms go down, P1 wins - arms stay up
+            set_angle(p2_arm_left_pwm, ARM_NEUTRAL_MIRRORED)   # P2 arms down (neutral)
+            set_angle(p2_arm_right_pwm, ARM_NEUTRAL)
+            set_angle(p1_arm_left_pwm, ARM_ATTACK)             # P1 arms up (victory!)
+            set_angle(p1_arm_right_pwm, ARM_ATTACK)
+            time.sleep(0.5)  # Hold victory pose
             return "Player 1"
         
         # Small delay for loop timing (~60Hz)
@@ -367,61 +380,86 @@ if __name__ == "__main__":
     print("=" * 40)
     print()
     
-    # Create fighters
-    player1 = Fighter(
-        name="Player 1",
-        move_left_pwm=p1_move_left_pwm,
-        move_right_pwm=p1_move_right_pwm,
-        arm_left_pwm=p1_arm_left_pwm,
-        arm_right_pwm=p1_arm_right_pwm,
-        fsr_left=P1_FSR_LEFT,
-        fsr_right=P1_FSR_RIGHT,
-        btn_left=P1_BTN_LEFT,
-        btn_right=P1_BTN_RIGHT,
-        btn_atk_left=P1_BTN_ATTACK_LEFT,
-        btn_atk_right=P1_BTN_ATTACK_RIGHT,
-        facing_right=True
-    )
-    
-    player2 = Fighter(
-        name="Player 2",
-        move_left_pwm=p2_move_left_pwm,
-        move_right_pwm=p2_move_right_pwm,
-        arm_left_pwm=p2_arm_left_pwm,
-        arm_right_pwm=p2_arm_right_pwm,
-        fsr_left=P2_FSR_LEFT,
-        fsr_right=P2_FSR_RIGHT,
-        btn_left=P2_BTN_LEFT,
-        btn_right=P2_BTN_RIGHT,
-        btn_atk_left=P2_BTN_ATTACK_LEFT,
-        btn_atk_right=P2_BTN_ATTACK_RIGHT,
-        facing_right=False
-    )
+    # Win tracking
+    p1_wins = 0
+    p2_wins = 0
     
     try:
-        # Reset arms to neutral
-        print("Initializing fighters...")
-        reset_arms()
-        stop_all_movement()
-        
-        # Wait for both players
-        wait_for_both_start()
-        
-        # Countdown
-        countdown()
-        
-        # Main game
-        winner = game_loop(player1, player2)
-        
-        # Game over
-        stop_all_movement()
-        print()
-        print("=" * 40)
-        print(f"   KNOCKOUT! {winner} WINS!")
-        print("=" * 40)
-        
+        while True:  # Outer loop for multiple games
+            # Create fighters with FRESH HP each game
+            player1 = Fighter(
+                name="Player 1",
+                move_left_pwm=p1_move_left_pwm,
+                move_right_pwm=p1_move_right_pwm,
+                arm_left_pwm=p1_arm_left_pwm,
+                arm_right_pwm=p1_arm_right_pwm,
+                fsr_left=P1_FSR_LEFT,
+                fsr_right=P1_FSR_RIGHT,
+                btn_left=P1_BTN_LEFT,
+                btn_right=P1_BTN_RIGHT,
+                btn_atk_left=P1_BTN_ATTACK_LEFT,
+                btn_atk_right=P1_BTN_ATTACK_RIGHT,
+                facing_right=True
+            )
+            
+            player2 = Fighter(
+                name="Player 2",
+                move_left_pwm=p2_move_left_pwm,
+                move_right_pwm=p2_move_right_pwm,
+                arm_left_pwm=p2_arm_left_pwm,
+                arm_right_pwm=p2_arm_right_pwm,
+                fsr_left=P2_FSR_LEFT,
+                fsr_right=P2_FSR_RIGHT,
+                btn_left=P2_BTN_LEFT,
+                btn_right=P2_BTN_RIGHT,
+                btn_atk_left=P2_BTN_ATTACK_LEFT,
+                btn_atk_right=P2_BTN_ATTACK_RIGHT,
+                facing_right=False
+            )
+            
+            # Reset arms to neutral
+            print("Initializing fighters...")
+            reset_arms()
+            stop_all_movement()
+            
+            # Wait for both players
+            wait_for_both_start()
+            
+            # Countdown
+            countdown()
+            
+            # Main game
+            winner = game_loop(player1, player2)
+            
+            # Update win counter
+            if winner == "Player 1":
+                p1_wins += 1
+            else:
+                p2_wins += 1
+            
+            # Game over
+            stop_all_movement()
+            print()
+            print("=" * 40)
+            print(f"   KNOCKOUT! {winner} WINS!")
+            print(f"   Series Score: P1: {p1_wins} - P2: {p2_wins}")
+            print("=" * 40)
+            print()
+            print("Move fighters back to starting positions")
+            print("Press START buttons for rematch!")
+            print("(Or press Ctrl+C to quit)")
+            print()
+            
+            # Small delay before accepting new start inputs
+            # This prevents immediate restart if buttons still held
+            time.sleep(2)
+            
     except KeyboardInterrupt:
-        print("\nFight stopped - NO CONTEST")
+        print("\n")
+        print("=" * 40)
+        print("   GAME OVER")
+        print(f"   Final Score: P1: {p1_wins} - P2: {p2_wins}")
+        print("=" * 40)
     
     finally:
         # Cleanup
